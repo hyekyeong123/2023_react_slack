@@ -19,8 +19,9 @@
       "@utils/*": ["utils/*"],
       "@typings/*": ["typings/*"]
     },
-
   },
+
+   //webpack이 ts 인식하게
   "ts-node": {
     "compilerOptions": {
       "module": "commonjs",
