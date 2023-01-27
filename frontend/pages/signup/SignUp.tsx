@@ -5,10 +5,28 @@ import { Link } from 'react-router-dom';
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
-  const [password, , setPassword] = useState('');
-  const [passwordCheck, , setPasswordCheck] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordCheck, setPasswordCheck] = useState('');
+  const onChangeEmail = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  }, []);
+  const onChangeNickname = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setNickname(e.target.value);
+  }, []);
+  const onChangePassword = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  }, []);
+  const onChangePasswordCheck = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPasswordCheck(e.target.value);
+  }, []);
+  const onSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      console.log(email, nickname, password, passwordCheck);
+    },
+    [email, nickname, password, passwordCheck],
+  );
   // const { data, error, revalidate } = useSWR('/api/users', fetcher);
-
   // const [email, onChangeEmail] = useInput('');
   // const [nickname, onChangeNickname] = useInput('');
   // const [password, , setPassword] = useInput('');
