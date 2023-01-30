@@ -1,20 +1,16 @@
 import React, { useCallback, useState, VFC } from 'react';
 import { Button, Form, Header, Input, Label, LinkContainer, Error } from './styles';
 import { Link } from 'react-router-dom';
+import useInput from '@hooks/useInput.js';
 
 const SignUp = () => {
-  const [email, setEmail] = useState('');
-  const [nickname, setNickname] = useState('');
+  const [email, onChangeEmail, setEmail] = useInput('');
+  const [nickname, onChangeNickname, setNickname] = useInput('');
+
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
   const [pwdMiMatchError, setPwdMismatchError] = useState(false);
   // *********************************************************************************
-  const onChangeEmail = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  }, []);
-  const onChangeNickname = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setNickname(e.target.value);
-  }, []);
 
   const onChangePassword = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,65 +37,6 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, pwdMiMatchError],
   );
-  // const { data, error, revalidate } = useSWR('/api/users', fetcher);
-  // const [email, onChangeEmail] = useInput('');
-  // const [nickname, onChangeNickname] = useInput('');
-  // const [password, , setPassword] = useInput('');
-  // const [passwordCheck, , setPasswordCheck] = useInput('');
-  // const [mismatchError, setMismatchError] = useState(false);
-  // const [signUpError, setSignUpError] = useState('');
-  // const [signUpSuccess, setSignUpSuccess] = useState(false);
-
-  // const onChangePassword = useCallback(
-  //   (e) => {
-  //     setPassword(e.target.value);
-  //     setMismatchError(e.target.value !== passwordCheck);
-  //   },
-  //   [passwordCheck],
-  // );
-  //
-  // const onChangePasswordCheck = useCallback(
-  //   (e) => {
-  //     setPasswordCheck(e.target.value);
-  //     setMismatchError(e.target.value !== password);
-  //   },
-  //   [password],
-  // );
-  //
-  // const onSubmit = useCallback(
-  //   (e) => {
-  //     e.preventDefault();
-  //     if (!mismatchError && nickname) {
-  //       console.log('서버로 회원가입하기');
-  //       setSignUpError('');
-  //       setSignUpSuccess(false);
-  //       axios
-  //         .post('/api/users', {
-  //           email,
-  //           nickname,
-  //           password,
-  //         })
-  //         .then((response) => {
-  //           console.log(response);
-  //           setSignUpSuccess(true);
-  //         })
-  //         .catch((error) => {
-  //           console.log(error.response);
-  //           setSignUpError(error.response.data);
-  //         })
-  //         .finally(() => {});
-  //     }
-  //   },
-  //   [email, nickname, password, passwordCheck, mismatchError],
-  // );
-  //
-  // if (data === undefined) {
-  //   return <div>로딩중...</div>;
-  // }
-  //
-  // if (data) {
-  //   return <Redirect to="/workspace/sleact/channel/일반" />;
-  // }
 
   return (
     <div id="container">
