@@ -1,7 +1,8 @@
 import React, { useCallback, useState, VFC } from 'react';
-import { Button, Form, Header, Input, Label, LinkContainer, Error } from './styles';
+import { Button, Form, Header, Input, Label, LinkContainer, Error, Success } from './styles';
 import { Link } from 'react-router-dom';
-import useInput from '@hooks/useInput.js';
+import useInput from '@hooks/useInput';
+import axios from 'axios';
 
 const SignUp = () => {
   const [email, onChangeEmail, setEmail] = useInput('');
@@ -10,6 +11,8 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
   const [pwdMiMatchError, setPwdMismatchError] = useState(false);
+  const [apiResultError, setApiResultError] = useState('');
+  const [apiResultSuccess, setApiResultSuccess] = useState(false);
   // *********************************************************************************
 
   const onChangePassword = useCallback(
@@ -32,7 +35,21 @@ const SignUp = () => {
       e.preventDefault();
       console.log(email, nickname, password, passwordCheck);
       if (!pwdMiMatchError) {
-        console.log('submit');
+        // 초기화
+        setApiResultError('');
+        setApiResultSuccess(false);
+
+        axios
+          .post('/api/users', { email, nickname, password })
+          .then((res) => {
+            console.log('success : ' + res);
+            setApiResultSuccess(true);
+          })
+          .catch((error) => {
+            console.log('fail : ' + error.response);
+            setApiResultError(error.response.data);
+          })
+          .finally(() => {});
       }
     },
     [email, nickname, password, passwordCheck, pwdMiMatchError],
@@ -68,8 +85,8 @@ const SignUp = () => {
           </div>
           {pwdMiMatchError && <Error>비밀번호가 일치하지 않습니다.</Error>}
           {!nickname && <Error>닉네임을 입력해주세요.</Error>}
-          {/*{signUpError && <Error>{signUpError}</Error>}*/}
-          {/*{signUpSuccess && <Success>회원가입되었습니다! 로그인해주세요.</Success>}*/}
+          {apiResultError && <Error>{apiResultError}</Error>}
+          {apiResultSuccess && <Success>회원가입되었습니다! 로그인해주세요.</Success>}
         </Label>
         <Button type="submit">회원가입</Button>
       </Form>

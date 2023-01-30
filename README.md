@@ -118,7 +118,7 @@ MYSQL_PASSWORD=디비비번
 
 ## 2일차
 17. 회원가입 axios로 진행
-  - npm i axios
+  - [npm i axios]
   - CORS 문제를 피하기 위해서 devServer에 proxy 세팅
   - CORS는 브라우저에서 다른 도메인의 서버로 요청을 보낼 때 발생
   - 같은 도메인의 서버로 요청을 보내거나, 서버끼리 요청을 보낼 때는 발생하지 않음
