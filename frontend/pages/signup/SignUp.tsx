@@ -1,5 +1,5 @@
 import React, { useCallback, useState, VFC } from 'react';
-import { Button, Form, Header, Input, Label, LinkContainer } from './styles';
+import { Button, Form, Header, Input, Label, LinkContainer, Error } from './styles';
 import { Link } from 'react-router-dom';
 
 const SignUp = () => {
@@ -7,24 +7,39 @@ const SignUp = () => {
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
+  const [pwdMiMatchError, setPwdMismatchError] = useState(false);
+  // *********************************************************************************
   const onChangeEmail = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   }, []);
   const onChangeNickname = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setNickname(e.target.value);
   }, []);
-  const onChangePassword = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  }, []);
-  const onChangePasswordCheck = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordCheck(e.target.value);
-  }, []);
+
+  const onChangePassword = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPassword(e.target.value);
+      setPwdMismatchError(e.target.value !== passwordCheck);
+    },
+    [passwordCheck],
+  );
+  const onChangePasswordCheck = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPasswordCheck(e.target.value);
+      setPwdMismatchError(e.target.value !== password);
+    },
+    [password],
+  );
+
   const onSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       console.log(email, nickname, password, passwordCheck);
+      if (!pwdMiMatchError) {
+        console.log('submit');
+      }
     },
-    [email, nickname, password, passwordCheck],
+    [email, nickname, password, passwordCheck, pwdMiMatchError],
   );
   // const { data, error, revalidate } = useSWR('/api/users', fetcher);
   // const [email, onChangeEmail] = useInput('');
@@ -102,6 +117,7 @@ const SignUp = () => {
             <Input type="text" id="nickname" name="nickname" value={nickname} onChange={onChangeNickname} />
           </div>
         </Label>
+
         <Label id="password-label">
           <span>비밀번호</span>
           <div>
@@ -113,8 +129,8 @@ const SignUp = () => {
           <div>
             <Input type="password" id="password-check" name="password-check" value={passwordCheck} onChange={onChangePasswordCheck} />
           </div>
-          {/*{mismatchError && <Error>비밀번호가 일치하지 않습니다.</Error>}*/}
-          {/*{!nickname && <Error>닉네임을 입력해주세요.</Error>}*/}
+          {pwdMiMatchError && <Error>비밀번호가 일치하지 않습니다.</Error>}
+          {!nickname && <Error>닉네임을 입력해주세요.</Error>}
           {/*{signUpError && <Error>{signUpError}</Error>}*/}
           {/*{signUpSuccess && <Success>회원가입되었습니다! 로그인해주세요.</Success>}*/}
         </Label>
