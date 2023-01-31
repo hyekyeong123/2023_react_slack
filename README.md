@@ -131,7 +131,7 @@ MYSQL_PASSWORD=디비비번
 19. @pages/LogIn 작성 및 SWR
   - 로그인 한 사람이 회원가입/로그인 페이지에 접근한다면?
   - GET 요청은 SWR로 하는 것도 괜찮음
-  - npm i swr
+  - [npm i swr]
   - SWR에 fetcher(axios를 사용)를 달아줌.
   - 로그인했음을 증명하기 위해 withCredentials: true 잊으면 안 됨.
 20. @layouts/Workspace 작성
