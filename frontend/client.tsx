@@ -8,10 +8,12 @@ import loadable from '@loadable/component';
 // import Login from '@pages/Login/Login'; // 코드 스플리팅 적용 전
 const Login = loadable(() => import('@pages/login/Login')); // 코드 스플리팅 적용 후
 const SignUp = loadable(() => import('@pages/signup/SignUp'));
+const Channel = loadable(() => import('@pages/channel/Channel'));
 
 const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <SignUp /> },
+  { path: '/workspace/channel', element: <Channel /> },
   {
     path: '/',
     element: <App />,

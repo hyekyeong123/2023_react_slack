@@ -6,6 +6,7 @@ import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR from 'swr';
 import fetcher from "@utils/fetcher";
+import {Navigate} from "react-router-dom";
 
 const LogIn = () => {
   const { data, error, mutate } = useSWR('/api/users', fetcher,{
@@ -45,10 +46,9 @@ const LogIn = () => {
   // if (data === undefined) {
   //   return <div>로딩중...</div>;
   // }
-  //
-  // if (data) {
-  //   return <Redirect to="/workspace/sleact/channel/일반" />;
-  // }
+  if (data) {
+    return <Navigate to="/workspace/channel" />;
+  }
 
   // console.log(error, userData);
   // if (!error && userData) {

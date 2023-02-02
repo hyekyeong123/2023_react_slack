@@ -1,9 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { FC, useCallback } from 'react';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
 
-const Workspace = () => {
+const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const { data, error, mutate } = useSWR('/api/users', fetcher, {
     dedupingInterval: 100000,
     errorRetryInterval: 100000,
@@ -22,6 +22,7 @@ const Workspace = () => {
       <button type="button" onClick={onLogout}>
         로그아웃
       </button>
+      {children}
     </div>
   );
 };
