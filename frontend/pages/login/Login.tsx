@@ -4,16 +4,12 @@ import { Success, Form, Error, Label, Input, LinkContainer, Button, Header } fro
 import axios from 'axios';
 import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
-import useSWR from 'swr';
+import useSWR, {useSWRConfig} from 'swr';
 import fetcher from "@utils/fetcher";
 import {Navigate} from "react-router-dom";
 
 const LogIn = () => {
-  const { data, error, mutate } = useSWR('/api/users', fetcher,{
-      dedupingInterval:100000,
-      errorRetryInterval:100000,
-      errorRetryCount:5
-  });
+  const { data, error, mutate } = useSWR('/api/users', fetcher,);
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
@@ -32,7 +28,7 @@ const LogIn = () => {
         )
         .then((response) => {
             console.log('success : ' + response);
-          mutate(); // 성공했을때 fetcher 호출
+            mutate(response.data, true) // 기존에 가지고 있는 데이터를 넣어버리기
         })
         .catch((error) => {
             console.log('fail : ' + JSON.stringify(error.response));
@@ -41,7 +37,6 @@ const LogIn = () => {
     },
     [email, password],
   );
-  // TODO : 현재 로그인이 안됨..
 
   // if (data === undefined) {
   //   return <div>로딩중...</div>;
@@ -49,7 +44,14 @@ const LogIn = () => {
   if (data) {
     return <Navigate to="/workspace/channel" />;
   }
+  // if(data === undefined){
+  //     console.log('data fail : ', data);
+  //     return <div>Loading</div>
+  // }
 
+  if(error){
+      console.log('로그인 fail', error);
+  }
   // console.log(error, userData);
   // if (!error && userData) {
   //   console.log('로그인됨', userData);

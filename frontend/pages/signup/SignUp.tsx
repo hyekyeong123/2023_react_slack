@@ -1,10 +1,13 @@
 import React, { useCallback, useState, VFC } from 'react';
 import { Button, Form, Header, Input, Label, LinkContainer, Error, Success } from './styles';
-import { Link } from 'react-router-dom';
+import {Link, Navigate} from 'react-router-dom';
 import useInput from '@hooks/useInput';
 import axios from 'axios';
+import useSWR from "swr";
+import fetcher from "@utils/fetcher";
 
 const SignUp = () => {
+    const { data, error, mutate } = useSWR('/api/users', fetcher,{});
   const [email, onChangeEmail, setEmail] = useInput('');
   const [nickname, onChangeNickname, setNickname] = useInput('');
 
@@ -54,7 +57,9 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, pwdMiMatchError],
   );
-
+    if (data) {
+        return <Navigate to="/workspace/channel" />;
+    }
   return (
     <div id="container">
       <Header>Sleact</Header>
