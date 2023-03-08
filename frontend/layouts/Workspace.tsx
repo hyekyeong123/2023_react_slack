@@ -7,7 +7,6 @@ import {Navigate} from "react-router-dom";
 const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const { data, error, mutate } = useSWR('/api/users', fetcher, {
     dedupingInterval: 100000,
-    errorRetryInterval: 100000,
     errorRetryCount: 5,
   });
 
@@ -16,18 +15,19 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, {
       withCredentials: true,
-    }).then((response)=>{
-      mutate(undefined);
+    })
+    .then((response)=>{
+      mutate(false, true);
     })
   }, []);
+  
   if (!data) {
     return <Navigate to="/login" />;
-  }else{
-    console.log("data data : "+data);
   }
-  // **************************
-
-
+  // else{
+  //   console.log("data data : "+data);
+  // }
+  // *****************************************************************************************
   return (
     <div>
       <button type="button" onClick={onLogout}>

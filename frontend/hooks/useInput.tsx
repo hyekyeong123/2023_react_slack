@@ -2,12 +2,12 @@ import { Dispatch, SetStateAction, useCallback, useState, ChangeEvent } from 're
 
 type ReturnTypes<T> = [T, (e: ChangeEvent<HTMLInputElement>) => void, Dispatch<SetStateAction<T>>];
 
-const useInput = <T,>(initialData: T): ReturnTypes<T> => {
-  const [value, setValue] = useState(initialData);
-  const handler = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+const useInput = <T,>(_initialData: T): ReturnTypes<T> => {
+  const [value, setValue] = useState(_initialData);
+  const handlerFunc = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value as unknown as T);
   }, []);
-  return [value, handler, setValue];
+  return [value, handlerFunc, setValue];
 };
 
 export default useInput;

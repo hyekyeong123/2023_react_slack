@@ -3,11 +3,9 @@ import axios from 'axios';
 import {mutate} from "swr";
 
 const fetcher = (url: string) => {
-  console.log("fetcher 함수 불림");
   return axios.get(url, {
-    withCredentials: true
+    withCredentials: true // 쿠키 생성 허용
   }).then((res) => {
-    console.log("url : "+url, "data : "+JSON.stringify(res.data))
     return res.data
   });
 };

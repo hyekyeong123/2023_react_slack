@@ -87,7 +87,7 @@ const config: Configuration = {
     // 프론트엔드에서 api로 보내는 요청은 3095로 보내는것처럼 취급
     proxy: {
       '/api/': {
-        target: 'http://localhost:3095',
+        target: 'http://localhost:3095', // 3095가 3095한테 보내는 것처럼 됨
         changeOrigin: true,
       },
     },
