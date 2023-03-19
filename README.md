@@ -137,14 +137,17 @@ MYSQL_PASSWORD=디비비번
 20. @layouts/Workspace 작성
   - 눈에 띄는 구역 단위로 스타일드컴포넌트로 만들어둠.
   - 구역 내부의 태그들은 스타일드컴포넌트로 만들면 변수명 지어야 하니 css선택자로 선택
-21. 그라바타
-  - npm i gravatar @types/gravatar
+22. 그라바타
+  - [npm i gravatar @types/gravatar]
   - Github같은 아이콘을 만들 수 있음
 22. typescript 정의
   - 기본적으로 변수, 매개변수, 리턴값에 타입을 붙여주면 됨.
   - 남이 타이핑해둔 것 분석하는 게 어려움
   - Go to Type Definition
   - 자바스크립트 라이브러리 작성자와는 다른 사람이 만든 ts 라이브러리가 @types로 시작하는 것들
+
+  [npm i react-toastify] // 에러 toast 창 생성
+
 23. @components/DMList 작성
   - 현재 채널 참여자 목록 가져오기
 24. @pages/DirectMessage 작성
@@ -182,4 +185,16 @@ MYSQL_PASSWORD=디비비번
 --------------------------
 실행 환경 변경시
 frontend [npm i npm run dev]
-/ backend [npm i npm run dev]
+/ backend [npm i npm run dev] 실수로 npm run start로 가동시 pm2서버가 작동했으니 이를 꺼야함
+
+------------------------------
+리액트로 개발시 반드시 해야할것들
+1. 모든 함수 useEffect로 감싸기
+2. 코드 스플리킹 사용하기
+   ```
+   import loadable from '@loadable/component';
+   const Login = loadable(() => import('@pages/login/Login')); 
+   const router = createBrowserRouter([
+    { path: '/login', element: <Login /> },]);
+    ```
+3. 

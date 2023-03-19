@@ -6,5 +6,9 @@
       "presets": ["@babel/preset-react"]
     }
   },
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": ["error", { "endOfLine": "auto" }]
+  },
   "extends": ["plugin:prettier/recommended"]
 }

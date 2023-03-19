@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import {mutate} from "swr";
 
-const fetcher = (url: string) => {
+const getAxiosReturnData = (url: string) => {
   return axios.get(url, {
     withCredentials: true // 쿠키 생성 허용
   }).then((res) => {
@@ -10,4 +10,4 @@ const fetcher = (url: string) => {
   });
 };
 
-export default fetcher;
+export default getAxiosReturnData;

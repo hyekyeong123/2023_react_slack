@@ -1,12 +1,15 @@
 import React from 'react';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
-import Workspace from '@layouts/Workspace';
+import Workspace from '@layouts/workspace/Workspace';
+import { Container, Header } from '@pages/channel/style';
 
 const Channel = () => {
   return (
     <Workspace>
-      <div>로그인하신 것을 축하드려요!</div>;
+      <Container>
+        <Header>Header</Header>
+      </Container>
     </Workspace>
   );
 };

@@ -5,18 +5,18 @@ import axios from 'axios';
 import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR, {useSWRConfig} from 'swr';
-import fetcher from "@utils/fetcher";
 import {Navigate} from "react-router-dom";
+import getAxiosReturnData from "@utils/fetcher";
 
 // useSWR 컨트룰하기
 // 1. 로그인 클릭시 바로 API 요청하기(mutate)
 // 2. 서버 API 요청 간격 넓히기
 const LogIn = () => {
-  
+  const { mutate } = useSWRConfig();
   // 로그인 정보 가져오기, 로그인 되어 있지 않다면 false
-  const { data, error, mutate } = useSWR('/api/users', fetcher,{
-    dedupingInterval : 100000, // 100초 이내에는 서버에서 새로 통신하지 않고 기존에 통신했던 캐시에서 불러오겠다.
+  const { data, error} = useSWR('/api/users', getAxiosReturnData,{
     errorRetryCount:5, // 최대 3번까지만 재 요청
+    dedupingInterval:30*60*1000,
   });
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
@@ -35,10 +35,10 @@ const LogIn = () => {
           },
         )
         .then((response) => {
-            console.log('success : ' + response);
+            console.log('success : ' + JSON.stringify(response.data));
             
             // 로그인 성공시 다시 한번 요청
-            mutate(response.data, true) // 기존에 가지고 있는 데이터를 넣어버리기
+            mutate('/api/users',response.data,false) // 데이터 정보가 false에서 내 정보로 바뀜(false로 할 경우 요청을 다시 하는게 아니라 기존의 정보 사용) -> 리렌더링()
         })
         .catch((error) => {
             console.log('fail : ' + JSON.stringify(error.response));
@@ -47,21 +47,12 @@ const LogIn = () => {
     },
     [email, password],
   );
+  
+  if(data === undefined){return <div>Loading</div>}
+  if (data) {return <Navigate to="/workspace/sleact/channel/normal" />;}
+  
 
-  // if (data === undefined) {
-  //   return <div>로딩중...</div>;
-  // }
-  if (data) {
-    return <Navigate to="/workspace/channel" />;
-  }
-  // if(data === undefined){
-  //     console.log('data fail : ', data);
-  //     return <div>Loading</div>
-  // }
-
-  if(error){
-      console.log('로그인 fail', error);
-  }
+  if(error){console.log('로그인 fail', error);}
   // console.log(error, userData);
   // if (!error && userData) {
   //   console.log('로그인됨', userData);

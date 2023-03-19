@@ -61,9 +61,8 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, pwdMisMatchError],
   );
-    if (data) {
-        return <Navigate to="/workspace/channel" />;
-    }
+  if(data === undefined){return <div>Loading</div>}
+  if (data) {return <Navigate to="/workspace/sleact/channel/normal" />;}
   return (
     <div id="container">
       <Header>Sleact</Header>
