@@ -19,11 +19,12 @@ const CreateChannelModal:VFC<Props> = ({show, onCloseModal, setShowCreateChannel
   
   // 채널 생성하기
   const onSubmit =useCallback((e:any) =>{
+    e.preventDefault();
     axios.post(`/api/workspaces/${workspace}/channels`,{
       name:newChannel
     },{withCredentials:true})
     .then((response)=>{
-        mutate('/api/users')
+        mutate(`/api/workspaces/${workspace}/channels`); //채널 목록 다시 불러오기 
         setShowCreateChannelModal(false); // 모달창 닫기
         setNewChannel('');
         // console.log(`성공 response.data : ${JSON.stringify(response.data)}`);

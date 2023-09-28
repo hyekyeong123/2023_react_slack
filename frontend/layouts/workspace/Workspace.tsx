@@ -1,35 +1,39 @@
 import React, { FC, useCallback, useState } from "react";
-import useSWR from 'swr';
-import axios from 'axios';
+import useSWR, { useSWRConfig } from "swr";
+import axios from "axios";
 import { Link, Navigate } from "react-router-dom";
-import { useSWRConfig } from "swr"
 import getAxiosReturnData from "@utils/fetcher";
 import {
   AddButton,
   Channels,
   Chats,
-  Header, LogOutButton, MenuScroll,
-  ProfileImg, ProfileModal,
-  RightMenu, WorkspaceButton, WorkspaceModal,
+  Header,
+  LogOutButton,
+  MenuScroll,
+  ProfileImg,
+  ProfileModal,
+  RightMenu,
+  WorkspaceButton,
+  WorkspaceModal,
   WorkspaceName,
   Workspaces,
   WorkspaceWrapper
 } from "@layouts/workspace/style";
-import gravater from 'gravatar';
+import gravater from "gravatar";
 import Menu from "@components/menu/Menu";
-import { IChannel, IUser } from "@typings/db";
+import { IUser } from "@typings/db";
 import useInput from "@hooks/useInput";
 import Modal from "@components/modal/Modal";
 import { Button, Input, Label } from "@pages/signup/styles";
 import { toast } from "react-toastify";
-import CreateChannelModal from "@components/modal/createChannelModal/CreateChannelModal";
+import CreateChannelModal from "@components/modal/CreateChannelModal";
 import { useParams } from "react-router";
 import { Simulate } from "react-dom/test-utils";
-import dragOver = Simulate.dragOver;
+import InviteWorkspaceModal from "@components/modal/InviteWorkspaceModal";
+import InviteChannelModal from "@components/modal/InviteChannelModal";
+import DMList from "@components/dmList/DMList";
 
 const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
-
-  
   const { mutate } = useSWRConfig();
   const { data:userData, error, } = useSWR<IUser | false>(
     '/api/users',
@@ -40,6 +44,8 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false);
+  const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
   
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
@@ -54,7 +60,7 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
     })
   }, []);
   
-  // 프로필 토글 버튼
+  // 유저 프로필 토글 버튼
   const [showUserMenu, setShowUserMenu] = useState(false);
   const onCLickUserProfile = useCallback((e:React.MouseEvent<HTMLDivElement>)=>{
     e.stopPropagation();
@@ -94,6 +100,8 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const onCloseModal =useCallback(() =>{
     setShowCreateWorkspaceModal(false);
     setShowCreateChannelModal(false);
+    setShowInviteWorkspaceModal(false)
+    setShowInviteChannelModal(false);
   },[]);
   
   const toggleWorkspaceModal = useCallback(() =>{
@@ -103,40 +111,75 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const onClickAddChannel = useCallback(() =>{
     setShowCreateChannelModal(true);
   },[]);
+
   
-  // ***************** 채널 데이터 가져오기 *****************
+  // 파라미터 가져오기
   const {workspace} = useParams<{workspace:string;}>();
-  const { data:channelData, } = useSWR<IChannel | false>(
+  console.log(`workspace : ${workspace}`);
+  
+  // 채널 가져오기
+  const { data:channelData } = useSWR(
     userData ? `/api/workspaces/${workspace}/channels` : null, // 로그인한 상태에서만 가져오기
     getAxiosReturnData, {
       errorRetryCount: 5,
       dedupingInterval:30*60*1000,
     });
+  
+  // 멤버 가져오기
+  const { data:memberData } = useSWR(
+    userData ? `/api/workspaces/${workspace}/members` : null, // 로그인한 상태에서만 가져오기
+    getAxiosReturnData, {
+      errorRetryCount: 5,
+      dedupingInterval:30*60*1000,
+    });
+  
+  // 워크스페이스에 사용자 초대
+  const onClickInviteWorkspace = useCallback(() =>{
+    setShowCreateChannelModal(true);
+  },[]);
   // *****************************************************************************************
   if (!userData) {return <Navigate to="/login" />;} // 이걸 추가하면 데이터가 있어도 무조건 로그인 페이지로 들어가버림
   return (
     <div>
+      
       <Header>
+        
+        {/* 오른쪽 프로필 부분*/}
         <RightMenu>
           <span onClick={onCLickUserProfile}>
-            <ProfileImg src={gravater.url(userData.email,{s:'28px', d:'retro'})} alt={userData.nickname}></ProfileImg>
-            {showUserMenu && <Menu style={{right:0, top:38}} show={showUserMenu} onCloseModal={onCLickUserProfile}>
-              <ProfileModal>
-                <img src={gravater.url(userData.email,{s:'28px', d:'retro'})} alt={userData.nickname} />
-                <div>
-                  <span id="profile-name">{userData.nickname}</span>
-                  <span id="profile-active">Active</span>
-                </div>
-              </ProfileModal>
-              <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
-            </Menu>}
+            <ProfileImg
+              src={gravater.url(userData.email,{s:'28px', d:'retro'})}
+              alt={userData.nickname}>
+            </ProfileImg>
+            
+            {/* 프로필 클릭시 메뉴화면 보여주기 */}
+            {
+              showUserMenu &&
+              <Menu
+                style={{right:0, top:38}}
+                show={showUserMenu}
+                onCloseModal={onCLickUserProfile}>
+              
+                <ProfileModal>
+                  <img
+                    src={gravater.url(userData.email,{s:'28px', d:'retro'})}
+                    alt={userData.nickname} />
+                  <div>
+                    <span id="profile-name">{userData.nickname}</span>
+                    <span id="profile-active">Active</span>
+                  </div>
+                </ProfileModal>
+                <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
+                
+              </Menu>
+            }
           </span>
         </RightMenu>
-        
       </Header>
       
-      <button type="button" onClick={onLogout}>로그아웃</button>
       <WorkspaceWrapper>
+        
+        {/* 워크 스페이스 */}
         <Workspaces>
           {
           userData?.Workspaces.map((item)=>(
@@ -147,20 +190,29 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
           }
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
+        
         <Channels>
-          <WorkspaceName onClick={toggleWorkspaceModal}>Slack</WorkspaceName>
+          <WorkspaceName onClick={toggleWorkspaceModal}>SLACK</WorkspaceName>
           <MenuScroll>
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{top:95, left:80}}>
+              
+              {/* Slack 클릭시 */}
               <WorkspaceModal>
+                <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((item)=>(
-              <div>{item.name}</div>
-            ))}
+            
+            {/*<ChannelList userData={userData}/>*/}
+            <DMList/>
+            {/*{channelData?.map((v:any) => (*/}
+            {/*  <div>{v.name}</div>*/}
+            {/*))}*/}
           </MenuScroll>
         </Channels>
+        
+        {/* 실제 내용 */}
         <Chats>
           {children}
         </Chats>
@@ -182,11 +234,21 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
           <Button type="submit">생성하기</Button>
         </form>
       </Modal>
+      
       <CreateChannelModal
       show={showCreateChannelModal}
       onCloseModal={onCloseModal}
       setShowCreateChannelModal={setShowCreateChannelModal}
       />
+      <InviteWorkspaceModal
+        show={showInviteWorkspaceModal}
+        onCloseModal={onCloseModal}
+        setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
+      />
+      <InviteChannelModal
+          show={showInviteChannelModal}
+          onCloseModal={onCloseModal}
+          setShowInviteChannelModal={setShowInviteChannelModal}/>
     </div>
   );
 };

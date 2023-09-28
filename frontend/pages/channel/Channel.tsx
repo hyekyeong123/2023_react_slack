@@ -8,7 +8,7 @@ const Channel = () => {
   return (
     <Workspace>
       <Container>
-        <Header>Header</Header>
+        <Header>채널</Header>
       </Container>
     </Workspace>
   );
