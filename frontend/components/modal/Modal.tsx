@@ -8,8 +8,10 @@ interface Props{
   children:ReactNode;
 }
 
-
-const Modal:FC<Props> = ({show, onCloseModal, children}) => {
+// 한 가운데 뜨는 칭
+const Modal:FC<Props> = ({
+ show, onCloseModal, children
+}) => {
   const stopPropagation = useCallback((e:React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   }, []);
@@ -17,12 +19,10 @@ const Modal:FC<Props> = ({show, onCloseModal, children}) => {
   if(!show){return null}
   return (
     <CreateModal onClick={onCloseModal}>
-      
       <div onClick={stopPropagation}>
         <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>
         {children}
       </div>
-      
     </CreateModal>
   );
 };

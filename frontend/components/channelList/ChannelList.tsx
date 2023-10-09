@@ -1,16 +1,17 @@
 // import EachChannel from '@components/EachChannel';
 import { IChannel, IUser } from '@typings/db';
-import fetcher from '@utils/fetcher';
 import React, { FC, useCallback, useState } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { CollapseButton } from "@components/dmList/style";
+import { fetcher } from "@utils/fetcher";
+import EachChannel from "@components/EachChannel";
 
 const ChannelList: FC = () => {
   const { workspace } = useParams<{ workspace?: string }>();
   const [channelCollapse, setChannelCollapse] = useState(false);
-  const { data: userData } = useSWR<IUser>('/api/users', fetcher, { dedupingInterval: 2000, });
-  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
+  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData, { dedupingInterval: 2000, });
+  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher.getAxiosReturnData);
   
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev);
@@ -28,12 +29,12 @@ const ChannelList: FC = () => {
         </CollapseButton>
         <span>Channels</span>
       </h2>
-      {/*<div>*/}
-      {/*  {!channelCollapse &&*/}
-      {/*    channelData?.map((channel) => {*/}
-      {/*      return <EachChannel key={channel.id} channel={channel} />;*/}
-      {/*    })}*/}
-      {/*</div>*/}
+      <div>
+        {!channelCollapse &&
+          channelData?.map((channel) => {
+            return <EachChannel key={channel.id} channel={channel} />;
+          })}
+      </div>
     </>
   );
 };

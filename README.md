@@ -28,6 +28,7 @@ MYSQL_PASSWORD=디비비번
 직접 세팅하기에는 버전이 자꾸 달라져서 세팅법이 바뀌고, 입문자분들한테는 버겁습니다.
 
 ## 1일차
+npm 패키지 생성하기
 1. package.json
   - [npm init]으로 생성
   - [npm i react react-dom]

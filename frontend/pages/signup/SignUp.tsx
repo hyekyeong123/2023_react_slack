@@ -4,19 +4,20 @@ import {Link, Navigate} from 'react-router-dom';
 import useInput from '@hooks/useInput';
 import axios from 'axios';
 import useSWR from "swr";
-import fetcher from "@utils/fetcher";
+import { fetcher } from "@utils/fetcher";
 
 const SignUp = () => {
-    const { data, error, mutate } = useSWR('/api/users', fetcher,{});
+    const { data:userData, error, mutate } = useSWR('/api/users', fetcher.getAxiosReturnData,{});
   
-  // 중복
-  const [email, onChangeEmail, setEmail] = useInput('');
-  const [nickname, onChangeNickname, setNickname] = useInput('');
+  // 중복 제거
+  const [email, onChangeEmail] = useInput('');
+  const [nickname, onChangeNickname] = useInput('');
   
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
   
-  const [pwdMisMatchError, setPwdMismatchError] = useState(false);
+  
+  const [pwdMisMatchError, setPwdMismatchError] = useState(false); // 비밀번호가 다를 경우
   const [apiResultError, setApiResultError] = useState(''); // 서버 통신 실패시
   const [apiResultSuccess, setApiResultSuccess] = useState(false);
   // *********************************************************************************
@@ -40,13 +41,14 @@ const SignUp = () => {
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       console.log(email, nickname, password, passwordCheck);
+      
+      // 비밀번호 매치에 문제가 없다면 회원가입 하기
       if (!pwdMisMatchError) {
-        // 비동기요청 전 초기화
+        // 비동기요청 전 반드시 state 초기화 과정 필요
         setApiResultError('');
         setApiResultSuccess(false);
 
-        axios
-          .post('/api/users', // 프록시를 사용했기때문에 http://localhost 생략 가능
+        axios.post('/api/users', // 프록시를 사용했기때문에 http://localhost 생략 가능
             { email, nickname, password })
           .then((res) => {
             // console.log('success : ' + res);
@@ -61,8 +63,9 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, pwdMisMatchError],
   );
-  if(data === undefined){return <div>Loading</div>}
-  if (data) {return <Navigate to="/workspace/sleact/channel/normal" />;}
+// *******************************************************************************
+  if (userData) {return <Navigate to="/workspace/sleact/channel/normal" />;}
+  if(userData === undefined){return <div>Loading</div>}
   return (
     <div id="container">
       <Header>Sleact</Header>

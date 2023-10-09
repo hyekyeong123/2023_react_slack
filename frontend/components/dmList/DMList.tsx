@@ -1,22 +1,23 @@
 // import EachDM from '@components/EachDM';
 // import useSocket from '@hooks/useSocket';
-import { IDM, IUser, IUserWithOnline } from '@typings/db';
-import fetcher from '@utils/fetcher';
-import React, { FC, useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
-import { NavLink } from 'react-router-dom';
-import useSWR from 'swr';
+import { IUser, IUserWithOnline } from "@typings/db";
+import { fetcher } from "@utils/fetcher";
+import React, { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router";
+import useSWR from "swr";
 import { CollapseButton } from "@components/dmList/style";
+import EachDM from "@components/EachDM";
 
+// 채팅 목록 리스트
 const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
-  const { data: userData } = useSWR<IUser>('/api/users', fetcher, {
+  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData, {
     dedupingInterval: 2000, // 2초
   });
   
   const { data: memberData } = useSWR<IUserWithOnline[]>(
     userData ? `/api/workspaces/${workspace}/members` : null,
-    fetcher,
+    fetcher.getAxiosReturnData,
   );
   // const [socket] = useSocket(workspace);
   const [channelCollapse, setChannelCollapse] = useState(false); // true면 멤버 목록 보여주기
@@ -27,7 +28,6 @@ const DMList = () => {
   }, []);
   
   useEffect(() => {
-    console.log('DMList: workspace 바꼈다', workspace);
     setOnlineList([]);
   }, [workspace]);
   
@@ -54,13 +54,13 @@ const DMList = () => {
         </CollapseButton>
         <span>Direct Messages</span>
       </h2>
-      {/*<div>*/}
-      {/*  {!channelCollapse &&*/}
-      {/*    memberData?.map((member) => {*/}
-      {/*      const isOnline = onlineList.includes(member.id);*/}
-      {/*      return <EachDM key={member.id} member={member} isOnline={isOnline} />;*/}
-      {/*    })}*/}
-      {/*</div>*/}
+      <div>
+        {!channelCollapse &&
+          memberData?.map((member) => {
+            const isOnline = onlineList.includes(member.id);
+            return <EachDM key={member.id} member={member} isOnline={isOnline} />;
+          })}
+      </div>
     </>
   );
 };

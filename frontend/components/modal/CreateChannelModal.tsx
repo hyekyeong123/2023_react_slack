@@ -12,24 +12,25 @@ interface Props {
   onCloseModal:()=>void;
   setShowCreateChannelModal:(flag:boolean) => void;
 }
-const CreateChannelModal:VFC<Props> = ({show, onCloseModal, setShowCreateChannelModal}) => {
+const CreateChannelModal:VFC<Props> = (
+  {show, onCloseModal, setShowCreateChannelModal}
+) => {
   const { mutate } = useSWRConfig();
   const [newChannel, onChangeNewChannel, setNewChannel] = useInput('');
   const {workspace, channel} = useParams<{workspace:string; channel:string}>();
   
   // 채널 생성하기
-  const onSubmit =useCallback((e:any) =>{
+  const onSubmit = useCallback((e:any) =>{
     e.preventDefault();
     axios.post(`/api/workspaces/${workspace}/channels`,{
       name:newChannel
     },{withCredentials:true})
-    .then((response)=>{
-        mutate(`/api/workspaces/${workspace}/channels`); //채널 목록 다시 불러오기 
+    .then((res)=>{
         setShowCreateChannelModal(false); // 모달창 닫기
+        mutate(`/api/workspaces/${workspace}/channels`); // 채널 목록 다시 불러오기
         setNewChannel('');
-        // console.log(`성공 response.data : ${JSON.stringify(response.data)}`);
       }).catch((error)=>{
-      toast.error(error.response?.data, {position:'bottom-center'});
+      alert(error.response.data);
     })
   },[newChannel])
   // *****************************************

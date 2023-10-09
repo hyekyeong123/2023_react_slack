@@ -9,9 +9,11 @@ interface Props{
   children:ReactNode;
 }
 
-const Menu:FC<Props>  = ({ style, show, onCloseModal, closeButton,children }) => {
-  
-  {/* 본인을 클릭할 시 모달이 닫히면 안된다. (이벤트 버블링을 방지)*/}
+// 클릭했을때 바로 밑에 뜨는 창
+const Menu:FC<Props>  = ({
+  style, show, onCloseModal, closeButton,children
+}) => {
+  {/* 본인을 클릭할 시 모달이 닫히면 안된다. (닫힘 이벤트 버블링을 방지)*/}
   const stopPropagation = useCallback((e:React.MouseEvent<HTMLDivElement>)=>{
     e.stopPropagation();
    },[])
@@ -20,12 +22,11 @@ const Menu:FC<Props>  = ({ style, show, onCloseModal, closeButton,children }) =>
   return (
     // 바깥 영역을 클릭시 모달이 자동으로 닫히게 하고
     <CreateMenu onClick={onCloseModal}>
-      
       <div onClick={stopPropagation} style={style}>
-        {closeButton && <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>}
+        {closeButton && <CloseModalButton
+          onClick={onCloseModal}>&times;</CloseModalButton>}
         {children}
       </div>
-      
     </CreateMenu>
   );
 };

@@ -2,7 +2,7 @@ import React, { FC, useCallback, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import axios from "axios";
 import { Link, Navigate } from "react-router-dom";
-import getAxiosReturnData from "@utils/fetcher";
+import { fetcher } from "@utils/fetcher";
 import {
   AddButton,
   Channels,
@@ -25,22 +25,23 @@ import { IUser } from "@typings/db";
 import useInput from "@hooks/useInput";
 import Modal from "@components/modal/Modal";
 import { Button, Input, Label } from "@pages/signup/styles";
-import { toast } from "react-toastify";
 import CreateChannelModal from "@components/modal/CreateChannelModal";
 import { useParams } from "react-router";
-import { Simulate } from "react-dom/test-utils";
 import InviteWorkspaceModal from "@components/modal/InviteWorkspaceModal";
 import InviteChannelModal from "@components/modal/InviteChannelModal";
 import DMList from "@components/dmList/DMList";
+import ChannelList from "@components/channelList/ChannelList";
 
-const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
+const Workspace :
+  FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const { mutate } = useSWRConfig();
   const { data:userData, error, } = useSWR<IUser | false>(
     '/api/users',
-    getAxiosReturnData, {
-    errorRetryCount: 5,
+    fetcher.getUserAxiosReturnData, {
+    errorRetryCount: 50,
     dedupingInterval:30*60*1000,
   });
+  // 모달을 껐다 키는 state
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
@@ -49,12 +50,10 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
-
+// *******************************************************************
   // 로그아웃하기
   const onLogout = useCallback(() => {
-    axios.post('/api/users/logout', null, {
-      withCredentials: true,
-    })
+    axios.post('/api/users/logout', null, { withCredentials: true, })
     .then((response)=>{
       mutate('/api/users',false,false);
     })
@@ -76,6 +75,8 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const onCreateWorkspace =useCallback((e:any) =>{
     console.log(newWorkspace+"/"+newUrl)
     e.preventDefault();
+    
+    // 필수값들이 모두 있나 검사
     if (newWorkspace === "" || newWorkspace.trim() === "") return;
     if (newUrl === "" || newUrl.trim() === "") return;
     
@@ -92,11 +93,12 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
       setNewUrl('');
       console.log(`성공 response.data : ${JSON.stringify(response.data)}`);
     }).catch((error)=>{
-      console.log(`error : ${error}`);
-      toast.error(error.response?.data, {position:'bottom-center'});
+      // console.log(error);
+      alert(error.response.data);
     })
   },[newWorkspace, newUrl])
   
+  // 버튼 클릭시 모든 모달창 닫아줌
   const onCloseModal =useCallback(() =>{
     setShowCreateWorkspaceModal(false);
     setShowCreateChannelModal(false);
@@ -115,38 +117,41 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   
   // 파라미터 가져오기
   const {workspace} = useParams<{workspace:string;}>();
-  console.log(`workspace : ${workspace}`);
   
-  // 채널 가져오기
-  const { data:channelData } = useSWR(
-    userData ? `/api/workspaces/${workspace}/channels` : null, // 로그인한 상태에서만 가져오기
-    getAxiosReturnData, {
-      errorRetryCount: 5,
-      dedupingInterval:30*60*1000,
-    });
-  
-  // 멤버 가져오기
-  const { data:memberData } = useSWR(
-    userData ? `/api/workspaces/${workspace}/members` : null, // 로그인한 상태에서만 가져오기
-    getAxiosReturnData, {
-      errorRetryCount: 5,
-      dedupingInterval:30*60*1000,
-    });
+  // console.log(`workspace : ${workspace}`);
+  // // 현재 워크스페이스의 모든 채널 가져오기
+  // const { data:channelData } = useSWR(
+  //   `/api/workspaces/${workspace}/channels`, // 로그인한 상태에서만 가져오기
+  //   fetcher.getAxiosReturnData, {
+  //     enabled:!!userData,
+  //     errorRetryCount: 5,
+  //     dedupingInterval:30*60*1000,
+  //   });
+  //
+  // // 멤버 가져오기
+  // const { data:memberData } = useSWR(
+  //   `/api/workspaces/${workspace}/members`, // 로그인한 상태에서만 가져오기
+  //   fetcher.getAxiosReturnData, {
+  //     enabled:!!userData,
+  //     errorRetryCount: 5,
+  //     dedupingInterval:30*60*1000,
+  //   });
   
   // 워크스페이스에 사용자 초대
   const onClickInviteWorkspace = useCallback(() =>{
-    setShowCreateChannelModal(true);
+    setShowInviteWorkspaceModal(true);
   },[]);
   // *****************************************************************************************
-  if (!userData) {return <Navigate to="/login" />;} // 이걸 추가하면 데이터가 있어도 무조건 로그인 페이지로 들어가버림
+  if (userData === undefined){return <div>Loading</div>}
+  if (userData === false) {return <Navigate to="/login" />;} // 로그아웃시 로그인 페이지로 이동
   return (
     <div>
-      
       <Header>
-        
-        {/* 오른쪽 프로필 부분*/}
+        {/* ***************** 오른쪽 프로필 부분  ***************** */}
         <RightMenu>
           <span onClick={onCLickUserProfile}>
+            
+            {/* 유저 프로필(gravater 사용) */}
             <ProfileImg
               src={gravater.url(userData.email,{s:'28px', d:'retro'})}
               alt={userData.nickname}>
@@ -170,33 +175,37 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
                   </div>
                 </ProfileModal>
                 <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
-                
               </Menu>
             }
           </span>
         </RightMenu>
       </Header>
-      
       <WorkspaceWrapper>
-        
-        {/* 워크 스페이스 */}
+  
+        {/* ********************* 워크 스페이스들 ********************* */}
         <Workspaces>
-          {
-          userData?.Workspaces.map((item)=>(
-            <Link key={item.id} to={`/workspace/${123}/channel/일반`}>
+          {userData?.Workspaces?.map((item)=>(
+            <Link key={item.id} to={`/workspace/${item.url}/channel/normal`}>
             <WorkspaceButton>{item.name.slice(0,1).toUpperCase()}</WorkspaceButton>
           </Link>
           ))
           }
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
-        
+  
+        {/* ********************* 채널들 ********************* */}
         <Channels>
-          <WorkspaceName onClick={toggleWorkspaceModal}>SLACK</WorkspaceName>
+          <WorkspaceName
+            onClick={toggleWorkspaceModal}
+          >워크스페이스 이름</WorkspaceName>
+          
+          {/* ***** WorkspaceName 클릭시 ***** */}
           <MenuScroll>
-            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{top:95, left:80}}>
-              
-              {/* Slack 클릭시 */}
+            <Menu
+              show={showWorkspaceModal}
+              onCloseModal={toggleWorkspaceModal}
+              style={{top:95, left:80}}
+            >
               <WorkspaceModal>
                 <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
@@ -204,47 +213,51 @@ const Workspace:FC<React.PropsWithChildren<{}>>  = ({ children }) => {
               </WorkspaceModal>
             </Menu>
             
-            {/*<ChannelList userData={userData}/>*/}
+            <ChannelList/>
             <DMList/>
             {/*{channelData?.map((v:any) => (*/}
             {/*  <div>{v.name}</div>*/}
             {/*))}*/}
           </MenuScroll>
         </Channels>
-        
-        {/* 실제 내용 */}
+  
+        {/* ********************* 채팅 내용들 ********************* */}
         <Chats>
           {children}
         </Chats>
       </WorkspaceWrapper>
       
+      {/* + 버튼 클릭시 워크스페이스 생성 모달 */}
+      {/* input이 있을 경우 다른 컴포넌트로 빼야 성능에 좋음 */}
       <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
         <form onSubmit={onCreateWorkspace}>
-          
           <Label id="workspace-label">
             <span>워크스페이스 이름</span>
             <Input id="workspace" value={newWorkspace} onChange={onChangeNewWorkspace} />
           </Label>
-          
           <Label id="workspace-url-label">
             <span>워크스페이스 url</span>
             <Input id="workspace-url" value={newUrl} onChange={onChangeNewUrl} />
           </Label>
-          
-          <Button type="submit">생성하기</Button>
+          <Button type="submit">워크스페이스 생성</Button>
         </form>
       </Modal>
-      
+  
+      {/* 채널 만들기 클릭시 모달 */}
       <CreateChannelModal
       show={showCreateChannelModal}
       onCloseModal={onCloseModal}
       setShowCreateChannelModal={setShowCreateChannelModal}
       />
+      
+      {/* 워크스페이스에 사용자 초대 모달 */}
       <InviteWorkspaceModal
         show={showInviteWorkspaceModal}
         onCloseModal={onCloseModal}
         setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
       />
+     
+      {/* 워크스페이스 내의 채널에 사용자 초대 모달 */}
       <InviteChannelModal
           show={showInviteChannelModal}
           onCloseModal={onCloseModal}

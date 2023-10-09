@@ -1,6 +1,10 @@
 import { Dispatch, SetStateAction, useCallback, useState, ChangeEvent } from 'react';
 
-type ReturnTypes<T> = [T, (e: ChangeEvent<HTMLInputElement>) => void, Dispatch<SetStateAction<T>>];
+type ReturnTypes<T> = [
+  T,
+  (e: ChangeEvent<HTMLInputElement>) => void,
+  Dispatch<SetStateAction<T>>
+];
 
 const useInput = <T,>(_initialData: T): ReturnTypes<T> => {
   

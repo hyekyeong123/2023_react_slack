@@ -1,26 +1,28 @@
 import useInput from '@hooks/useInput';
+import { useNavigate } from "react-router-dom";
 import { Success, Form, Error, Label, Input, LinkContainer, Button, Header } from '@pages/signup/styles';
-// import fetcher from '@utils/fetcher';
+// import { fetcher } from "@utils/fetcher";
 import axios from 'axios';
 import React, { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useSWR, {useSWRConfig} from 'swr';
-import {Navigate} from "react-router-dom";
-import getAxiosReturnData from "@utils/fetcher";
+import { fetcher } from "@utils/fetcher";
 
 // useSWR 컨트룰하기
 // 1. 로그인 클릭시 바로 API 요청하기(mutate)
 // 2. 서버 API 요청 간격 넓히기
 const LogIn = () => {
   const { mutate } = useSWRConfig();
+  const navigate = useNavigate();
   // 로그인 정보 가져오기, 로그인 되어 있지 않다면 false
-  const { data, error} = useSWR('/api/users', getAxiosReturnData,{
-    errorRetryCount:5, // 최대 3번까지만 재 요청
-    dedupingInterval:30*60*1000,
+  // data는 리턴한 데이터값
+  const { data:userData, error} = useSWR('/api/users', fetcher.getUserAxiosReturnData,{
+    errorRetryCount:2, // 최대 2번까지만 재 요청
+    dedupingInterval:30*60*1000, // (30분) 해당 기간 내에는 캐시에서 가져오기
   });
   const [logInError, setLogInError] = useState(false);
-  const [email, onChangeEmail] = useInput('');
-  const [password, onChangePassword] = useInput('');
+  const [email, onChangeEmail] = useInput('11@11');
+  const [password, onChangePassword] = useInput('11');
 
   const onSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -30,35 +32,24 @@ const LogIn = () => {
         .post(
           '/api/users/login',
           { email, password },
-          {
-            withCredentials: true,
-          },
+          { withCredentials: true, },
         )
         .then((response) => {
-            console.log('success : ' + JSON.stringify(response.data));
-            
-            // 로그인 성공시 다시 한번 요청
-            mutate('/api/users',response.data,false) // 데이터 정보가 false에서 내 정보로 바뀜(false로 할 경우 요청을 다시 하는게 아니라 기존의 정보 사용) -> 리렌더링()
+          // mutate => 서버에 요청 보내지 않고 데이터를 수정하는것(뒤의 옵션에 false 할 경우),
+          // revalidate는 요청 자체를 새로 하는 것(mutete도 false를 안 할경우 재요청 보내서 서버 점검을 함)
+            mutate('/api/users',response.data,false)
         })
         .catch((error) => {
-            console.log('fail : ' + JSON.stringify(error.response));
-          setLogInError(error.response?.data?.statusCode === 401);
+            console.log(error.response);
+          setLogInError(error.response.status === 401);
         });
     },
     [email, password],
   );
-  
-  if(data === undefined){return <div>Loading</div>}
-  if (data) {return <Navigate to="/workspace/sleact/channel/normal" />;}
-  
-
+  // *******************************************************************************
   if(error){console.log('로그인 fail', error);}
-  // console.log(error, userData);
-  // if (!error && userData) {
-  //   console.log('로그인됨', userData);
-  //   return <Redirect to="/workspace/sleact/channel/일반" />;
-  // }
-
+  if (userData) {navigate("/workspace/sleact/channel/normal", {replace:true});} // 채널로 이동, 뒤로가기 불가
+  if (userData === undefined){return <div>Loading</div>}
   return (
     <div id="container">
       <Header>슬랙</Header>
