@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import axios from "axios";
 import { Link, Navigate } from "react-router-dom";
@@ -31,7 +31,8 @@ import InviteWorkspaceModal from "@components/modal/InviteWorkspaceModal";
 import InviteChannelModal from "@components/modal/InviteChannelModal";
 import DMList from "@components/dmList/DMList";
 import ChannelList from "@components/channelList/ChannelList";
-
+import { IChannel } from "@typings/db";
+import useSocket from "@hooks/useSocket";
 const Workspace :
   FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const { mutate } = useSWRConfig();
@@ -51,6 +52,10 @@ const Workspace :
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
 // *******************************************************************
+  const {workspace} = useParams<{workspace:string}>();
+  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher.getAxiosReturnData);
+// *******************************************************************
+  
   // 로그아웃하기
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, { withCredentials: true, })
@@ -113,35 +118,35 @@ const Workspace :
   const onClickAddChannel = useCallback(() =>{
     setShowCreateChannelModal(true);
   },[]);
-
-  
-  // 파라미터 가져오기
-  const {workspace} = useParams<{workspace:string;}>();
-  
-  // console.log(`workspace : ${workspace}`);
-  // // 현재 워크스페이스의 모든 채널 가져오기
-  // const { data:channelData } = useSWR(
-  //   `/api/workspaces/${workspace}/channels`, // 로그인한 상태에서만 가져오기
-  //   fetcher.getAxiosReturnData, {
-  //     enabled:!!userData,
-  //     errorRetryCount: 5,
-  //     dedupingInterval:30*60*1000,
-  //   });
-  //
-  // // 멤버 가져오기
-  // const { data:memberData } = useSWR(
-  //   `/api/workspaces/${workspace}/members`, // 로그인한 상태에서만 가져오기
-  //   fetcher.getAxiosReturnData, {
-  //     enabled:!!userData,
-  //     errorRetryCount: 5,
-  //     dedupingInterval:30*60*1000,
-  //   });
   
   // 워크스페이스에 사용자 초대
   const onClickInviteWorkspace = useCallback(() =>{
     setShowInviteWorkspaceModal(true);
   },[]);
-  // *****************************************************************************************
+  
+  
+// region ********************** 채팅 Socket IO *************************
+  const [socket, disconnectSocket] = useSocket(workspace);
+  useEffect(() => {
+    if (channelData && userData && socket) {
+      console.info('***** 소켓 로그인 *****', socket);
+      socket?.emit('login',
+        {
+          id: userData?.id,
+          channels: channelData.map((v) => v.id)
+        });
+    }
+  }, [socket, userData, channelData]);
+  
+  useEffect(() => {
+    return () => {
+      console.info('workspace 변경시 소켓 연결 끊기', workspace);
+      disconnectSocket();
+    };
+  }, [disconnectSocket, workspace]);
+// endregion ********************** 채팅 Socket IO **********************
+
+// *****************************************************************************************
   if (userData === undefined){return <div>Loading</div>}
   if (userData === false) {return <Navigate to="/login" />;} // 로그아웃시 로그인 페이지로 이동
   return (

@@ -91,6 +91,7 @@ HTTP 요청 리스트(ajax)
 
 # WebSocket
 웹소켓 API
+----
 ## socket.on
 서버에서 클라이언트로 보내는 이벤트(클라이언트에서는 on으로 받음)
 ### hello
@@ -105,7 +106,7 @@ HTTP 요청 리스트(ajax)
 ### dm
 - 새로운 dm 메시지가 올 때
 - 서버 데이터: IDM(dm 데이터)
-
+----
 ## socket.emit
 클라이언트에서 서버로 보내는 이벤트(클라이언트에서는 emit으로 보냄)
 ### login
@@ -114,3 +115,4 @@ HTTP 요청 리스트(ajax)
 
 ## disconnect
 - 클라이언트에서 소켓 연결을 종료하는 함수
+소켓에도 namespace = workspace, channel = room 같이 계층 구조가 존재

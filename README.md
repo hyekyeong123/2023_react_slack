@@ -168,6 +168,8 @@ npm 패키지 생성하기
 
 ## 3일차
 28. Workspace에 소켓 연결하기
+29. [npm i socket.io-client@4]
+- [npm i --save-dev @types/socket.io-client]
   - socket.emit이 클라이언트에서 서버로, socket.on이 서버에서 클라이언트로
 29. DMList에 onlineList, dm 이벤트 연결
 30. @components/ChatList 작성 및 @components/Chat 구현

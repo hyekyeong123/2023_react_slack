@@ -15,6 +15,8 @@ import { IDM } from '@typings/db';
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const { data: myData } = useSWR('/api/users', fetcher.getUserAxiosReturnData);
+  
+  // 상대방 데이터
   const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher.getAxiosReturnData);
   
   // 실시간 채팅 내용 받아오기
@@ -50,10 +52,11 @@ const DirectMessage = () => {
     e.preventDefault()
     
     if(chat?.trim()){
-      axios.post(`api/workspaces/${workspace}/dms/${id}/chats`,{
+      axios.post(`/api/workspaces/${workspace}/dms/${id}/chats`,{
         content:chat
-      })
+      },{withCredentials:true})
       .then(()=>{
+        console.log("chat 내용 서버로 보내기")
         setChat("");
         mutateChat();
       })
@@ -76,11 +79,10 @@ const DirectMessage = () => {
         {/*// isEmpty={isEmpty}*/}
         {/*// chatSections={chatSections}*/}
         {/*// setSize={setSize}*/}
-        <ChatList />
+        <ChatList
+          chatData={chatData}
+        />
         
-        {/*onSubmitForm={onSubmitForm}*/}
-        {/*chat={chat}*/}
-        {/*onChangeChat={onChangeChat}*/}
         <ChatBox
           onSubmitForm={onChatSubmitForm}
           chat={chat}

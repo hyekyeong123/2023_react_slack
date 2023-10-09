@@ -7,6 +7,7 @@ import { useParams } from "react-router";
 import useSWR from "swr";
 import { CollapseButton } from "@components/dmList/style";
 import EachDM from "@components/EachDM";
+import useSocket from "@hooks/useSocket";
 
 // 채팅 목록 리스트
 const DMList = () => {
@@ -19,7 +20,7 @@ const DMList = () => {
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher.getAxiosReturnData,
   );
-  // const [socket] = useSocket(workspace);
+
   const [channelCollapse, setChannelCollapse] = useState(false); // true면 멤버 목록 보여주기
   const [onlineList, setOnlineList] = useState<number[]>([]);
   
@@ -31,17 +32,23 @@ const DMList = () => {
     setOnlineList([]);
   }, [workspace]);
   
-  // useEffect(() => {
-  //   socket?.on('onlineList', (data: number[]) => {
-  //     setOnlineList(data);
-  //   });
-  //   console.log('socket on dm', socket?.hasListeners('dm'), socket);
-  //   return () => {
-  //     console.log('socket off dm', socket?.hasListeners('dm'));
-  //     socket?.off('onlineList');
-  //   };
-  // }, [socket]);
-  
+// region **************** 소켓으로 현재 활성화 유저 정보 가져오기 ****************
+  const [socket] = useSocket(workspace);
+  useEffect(() => {
+    
+    // 현재 활성화 유저 정보 가져오기
+    socket?.on('onlineList', (data: number[]) => {
+      setOnlineList(data);
+    });
+    // console.log('socket on dm List', socket?.hasListeners('dm'), socket);
+    
+    // 리턴함수에서 반드시 socket을 off 해야함
+    return () => {
+      // console.log('socket off dm List', socket?.hasListeners('dm'));
+      socket?.off('onlineList');
+    };
+  }, [socket]);
+// endregion **************** 소켓으로 현재 활성화 유저 정보 가져오기 ****************
   return (
     <>
       <h2>

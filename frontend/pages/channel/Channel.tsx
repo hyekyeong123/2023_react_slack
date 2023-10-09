@@ -11,16 +11,13 @@ import { useParams } from "react-router";
 const Channel = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const { data: myData } = useSWR('/api/users', fetcher.getUserAxiosReturnData);
-  // 상대방의 데이터 가져오기
-  const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher.getAxiosReturnData);
-  
   // region ******************** 채팅 관련 ***********************
   const [chat, onChangeChat, setChat] = useInput(''); // 현재 입력하고자 하는 채팅의 내용
   const onChatSubmitForm = useCallback((e:any)=>{
     e.preventDefault()
   },[])
   // endregion ******************** 채팅 관련 ********************
-  
+  if (!myData) {return null;}
   return (
     <Workspace>
       <Container>
@@ -32,7 +29,7 @@ const Channel = () => {
           onSubmitForm={onChatSubmitForm}
           chat={chat}
           onChangeChat={onChangeChat}
-          placeholder={`Message ${userData.nickname}`}
+          placeholder={`Message ${myData.nickname}`}
           data={[]}
         />
       </Container>

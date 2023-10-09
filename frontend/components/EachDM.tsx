@@ -31,6 +31,8 @@ const EachDM: VFC<Props> = ({ member, isOnline }) => {
     <NavLink key={member.id}
              className={({ isActive}) => isActive ? "selected" : ""}
              to={`/workspace/${workspace}/dm/${member.id}`}>
+      
+      {/* 현재 온라인 상태인 유저에겐 초록 동그라미 */}
       <i
         className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
           isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
