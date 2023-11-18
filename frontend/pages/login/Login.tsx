@@ -14,9 +14,9 @@ import { fetcher } from "@utils/fetcher";
 const LogIn = () => {
   const { mutate } = useSWRConfig();
   const navigate = useNavigate();
+  
   // 로그인 정보 가져오기, 로그인 되어 있지 않다면 false
-  // data는 리턴한 데이터값
-  const { data:userData, error} = useSWR('/api/users', fetcher.getUserAxiosReturnData,{
+  const { data:userData, error} = useSWR('/api/users', fetcher.getUserData,{
     errorRetryCount:2, // 최대 2번까지만 재 요청
     dedupingInterval:30*60*1000, // (30분) 해당 기간 내에는 캐시에서 가져오기
   });
@@ -24,6 +24,7 @@ const LogIn = () => {
   const [email, onChangeEmail] = useInput('11@11');
   const [password, onChangePassword] = useInput('11');
 
+  // ***************************************************************
   const onSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -35,9 +36,10 @@ const LogIn = () => {
           { withCredentials: true, },
         )
         .then((response) => {
-          // mutate => 서버에 요청 보내지 않고 데이터를 수정하는것(뒤의 옵션에 false 할 경우),
-          // revalidate는 요청 자체를 새로 하는 것(mutete도 false를 안 할경우 재요청 보내서 서버 점검을 함)
+          // mutate => 뒤의 옵션에 false 할 경우 서버에 요청 보내지 않고 데이터를 수정하는것,
             mutate('/api/users',response.data,false)
+  
+          // revalidate는 요청 자체를 새로 하는 것(mutete도 false를 안 할경우 재요청 보내서 서버 점검을 함)
         })
         .catch((error) => {
             console.log(error.response);

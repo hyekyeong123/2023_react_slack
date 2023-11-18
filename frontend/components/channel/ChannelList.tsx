@@ -3,15 +3,18 @@ import { IChannel, IUser } from '@typings/db';
 import React, { FC, useCallback, useState } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
-import { CollapseButton } from "@components/dmList/style";
+import { CollapseButton } from "@components/dm/style";
 import { fetcher } from "@utils/fetcher";
-import EachChannel from "@components/EachChannel";
+import EachChannel from "@components/channel/EachChannel";
 
 const ChannelList: FC = () => {
   const { workspace } = useParams<{ workspace?: string }>();
   const [channelCollapse, setChannelCollapse] = useState(false);
   const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData, { dedupingInterval: 2000, });
-  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher.getAxiosReturnData);
+  const { data: channelData } = useSWR<IChannel[]>(
+    userData ? `/api/workspaces/${workspace}/channels` : null,
+    fetcher.getAxiosReturnData
+  );
   
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev);

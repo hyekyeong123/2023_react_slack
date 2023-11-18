@@ -5,17 +5,16 @@ import { fetcher } from "@utils/fetcher";
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import useSWR from "swr";
-import { CollapseButton } from "@components/dmList/style";
-import EachDM from "@components/EachDM";
+import { CollapseButton } from "@components/dm/style";
+import EachDM from "@components/dm/EachDM";
 import useSocket from "@hooks/useSocket";
 
-// 채팅 목록 리스트
+// 1 대 1 채팅 목록 리스트
 const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
-  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData, {
+  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getUserData, {
     dedupingInterval: 2000, // 2초
   });
-  
   const { data: memberData } = useSWR<IUserWithOnline[]>(
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher.getAxiosReturnData,
@@ -40,11 +39,9 @@ const DMList = () => {
     socket?.on('onlineList', (data: number[]) => {
       setOnlineList(data);
     });
-    // console.log('socket on dm List', socket?.hasListeners('dm'), socket);
     
-    // 리턴함수에서 반드시 socket을 off 해야함
     return () => {
-      // console.log('socket off dm List', socket?.hasListeners('dm'));
+      // 리턴함수에서 반드시 socket을 off 해야함
       socket?.off('onlineList');
     };
   }, [socket]);

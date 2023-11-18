@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import Workspace from '@layouts/workspace/Workspace';
 import gravater from "gravatar";
 import { fetcher } from "@utils/fetcher";
@@ -10,14 +10,16 @@ import ChatList from "@components/chatList/ChatList";
 import useInput from "@hooks/useInput";
 import axios from "axios";
 import { IDM } from '@typings/db';
+import makeSection from "@utils/makeSection";
+import Scrollbars from "react-custom-scrollbars";
 
 // 1대1 채팅 페이지 View
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
-  const { data: myData } = useSWR('/api/users', fetcher.getUserAxiosReturnData);
   
+  const { data: myData } = useSWR('/api/users', fetcher.getUserData);
   // 상대방 데이터
-  const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher.getAxiosReturnData);
+  const { data: memberData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher.getAxiosReturnData);
   
   // 실시간 채팅 내용 받아오기
   const { data: chatData, mutate: mutateChat } = useSWR<IDM[]>(
@@ -45,8 +47,10 @@ const DirectMessage = () => {
       },
     },
   );*/
+  
   // region ******************** 채팅 관련 ***********************
   const [chat, onChangeChat, setChat] = useInput(''); // 현재 입력하고자 하는 채팅의 내용
+  
   const onChatSubmitForm = useCallback((e:any)=>{
     console.log(`chat submit : ${chat}`);
     e.preventDefault()
@@ -56,23 +60,28 @@ const DirectMessage = () => {
         content:chat
       },{withCredentials:true})
       .then(()=>{
-        console.log("chat 내용 서버로 보내기")
+        // console.log("chat 내용 서버로 보내기")
         setChat("");
         mutateChat();
       })
       .catch(console.error)
     }
   },[chat])
-  // endregion ******************** 채팅 관련 ********************
   
+  const chatSections = makeSection(chatData
+    ? [...chatData].reverse()
+    : []
+  );
+  // endregion ******************** 채팅 관련 ********************
+  const scrollbarRef = useRef<Scrollbars>(null);
   // ****************************************************
-  if (!userData || !myData) {return null;}
+  if (!memberData || !myData) {return null;}
   return (
     <Workspace>
       <Container>
         <Header>
-          <img src={gravater.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
-          <span>{userData.nickname}</span>
+          <img src={gravater.url(memberData.email, { s: '24px', d: 'retro' })} alt={memberData.nickname} />
+          <span>{memberData.nickname}</span>
         </Header>
         {/*// scrollbarRef={scrollbarRef}*/}
         {/*// isReachingEnd={isReachingEnd}*/}
@@ -80,14 +89,16 @@ const DirectMessage = () => {
         {/*// chatSections={chatSections}*/}
         {/*// setSize={setSize}*/}
         <ChatList
-          chatData={chatData}
+          chatSections={chatSections}
+          // ref={scrollbarRef}
         />
         
+        {/* 보내는 메시지를 입력하는 창*/}
         <ChatBox
           onSubmitForm={onChatSubmitForm}
           chat={chat}
           onChangeChat={onChangeChat}
-          placeholder={`Message ${userData.nickname}`}
+          placeholder={`Message ${memberData.nickname}`}
           data={[]}
         />
       </Container>

@@ -17,7 +17,7 @@ interface Props {
 const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWorkspaceModal }) => {
   const { mutate } = useSWRConfig();
   const { workspace } = useParams<{ workspace: string; channel: string }>();
-  const [newMember, onChangeNewMember, setNewMember] = useInput('');
+  const [email, onChangeNewMember, setNewMember] = useInput('');
   const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData);
   
   const { mutate: mutateMember } = useSWR<IUser[]>(
@@ -29,10 +29,8 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
   const onInviteMember = useCallback(
     (e:any) => {
       e.preventDefault();
-      if (!newMember || !newMember.trim()) {return;}
-      axios.post(`/api/workspaces/${workspace}/members`, {
-          email: newMember,
-        })
+      if (!email || !email.trim()) {return;}
+      axios.post(`/api/workspaces/${workspace}/members`, { email})
         .then((res) => {
           mutateMember();
           setShowInviteWorkspaceModal(false);
@@ -43,7 +41,7 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
           alert(error.response?.data)
         });
     },
-    [newMember, workspace, mutateMember, setShowInviteWorkspaceModal, setNewMember],
+    [email, workspace, mutateMember, setShowInviteWorkspaceModal, setNewMember],
   );
   // ****************************************************
   if(!show) return null;
@@ -52,7 +50,7 @@ const InviteWorkspaceModal: FC<Props> = ({ show, onCloseModal, setShowInviteWork
       <form onSubmit={onInviteMember}>
         <Label id="member-label">
           <span>초대받을 사람 이메일</span>
-          <Input id="member" type="email" value={newMember} onChange={onChangeNewMember} />
+          <Input id="member" type="email" value={email} onChange={onChangeNewMember} />
         </Label>
         <Button type="submit">초대하기</Button>
       </form>

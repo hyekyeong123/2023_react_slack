@@ -5,7 +5,7 @@ import { Link, Navigate } from "react-router-dom";
 import { fetcher } from "@utils/fetcher";
 import {
   AddButton,
-  Channels,
+  ChannelsAndDMs,
   Chats,
   Header,
   LogOutButton,
@@ -29,16 +29,20 @@ import CreateChannelModal from "@components/modal/CreateChannelModal";
 import { useParams } from "react-router";
 import InviteWorkspaceModal from "@components/modal/InviteWorkspaceModal";
 import InviteChannelModal from "@components/modal/InviteChannelModal";
-import DMList from "@components/dmList/DMList";
-import ChannelList from "@components/channelList/ChannelList";
+import DMList from "@components/dm/DMList";
+import ChannelList from "@components/channel/ChannelList";
 import { IChannel } from "@typings/db";
 import useSocket from "@hooks/useSocket";
+import { CreateWorkSpaceModal } from "@components/modal/CreateWorkSpaceModal";
+
+
+
 const Workspace :
   FC<React.PropsWithChildren<{}>>  = ({ children }) => {
   const { mutate } = useSWRConfig();
-  const { data:userData, error, } = useSWR<IUser | false>(
+  const { data:userData, error, isLoading} = useSWR<IUser | false>(
     '/api/users',
-    fetcher.getUserAxiosReturnData, {
+    fetcher.getUserData, {
     errorRetryCount: 50,
     dedupingInterval:30*60*1000,
   });
@@ -48,20 +52,19 @@ const Workspace :
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false);
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
-  
-  const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
-  const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
+
 // *******************************************************************
   const {workspace} = useParams<{workspace:string}>();
-  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher.getAxiosReturnData);
+  
+  // 채널 데이터 가져오기
+  const { data: channelData } = useSWR<IChannel[]>(
+    userData ? `/api/workspaces/${workspace}/channels` : null, fetcher.getAxiosReturnData);
 // *******************************************************************
   
   // 로그아웃하기
   const onLogout = useCallback(() => {
     axios.post('/api/users/logout', null, { withCredentials: true, })
-    .then((response)=>{
-      mutate('/api/users',false,false);
-    })
+    .then((response)=>{mutate('/api/users',false,false);})
   }, []);
   
   // 유저 프로필 토글 버튼
@@ -71,37 +74,10 @@ const Workspace :
     setShowUserMenu((prev) => !prev);
   },[])
   
-  // 워크 스페이스 추가버튼 누를 경우 -> 모달 소환
-  const onClickCreateWorkspace =useCallback(() =>{
+  const onClickCreateWorkspace =useCallback((e:React.MouseEvent<HTMLButtonElement>) =>{
+    e.preventDefault();
     setShowCreateWorkspaceModal(true);
   },[])
-  
-  // 실제 워크스페이스 생성
-  const onCreateWorkspace =useCallback((e:any) =>{
-    console.log(newWorkspace+"/"+newUrl)
-    e.preventDefault();
-    
-    // 필수값들이 모두 있나 검사
-    if (newWorkspace === "" || newWorkspace.trim() === "") return;
-    if (newUrl === "" || newUrl.trim() === "") return;
-    
-    axios.post('/api/workspaces',{
-      workspace:newWorkspace,
-      url:newUrl
-    },{withCredentials:true})
-    .then((response)=>{
-      mutate('/api/users')
-      setShowCreateWorkspaceModal(false); // 모달창 닫기
-      
-      // 버튼 연달아서 클릭 못하게
-      setNewWorkspace('');
-      setNewUrl('');
-      console.log(`성공 response.data : ${JSON.stringify(response.data)}`);
-    }).catch((error)=>{
-      // console.log(error);
-      alert(error.response.data);
-    })
-  },[newWorkspace, newUrl])
   
   // 버튼 클릭시 모든 모달창 닫아줌
   const onCloseModal =useCallback(() =>{
@@ -127,6 +103,8 @@ const Workspace :
   
 // region ********************** 채팅 Socket IO *************************
   const [socket, disconnectSocket] = useSocket(workspace);
+  
+  // 로그인 했다고 서버에 소켓 IO 사용하여 알려줌
   useEffect(() => {
     if (channelData && userData && socket) {
       console.info('***** 소켓 로그인 *****', socket);
@@ -146,14 +124,14 @@ const Workspace :
   }, [disconnectSocket, workspace]);
 // endregion ********************** 채팅 Socket IO **********************
 
-// *****************************************************************************************
+// ======================================================================
+//   console.log("userData",userData);
   if (userData === undefined){return <div>Loading</div>}
-  if (userData === false) {return <Navigate to="/login" />;} // 로그아웃시 로그인 페이지로 이동
+  if (userData == false) {return <Navigate to="/login" />;} // 로그아웃시 로그인 페이지로 이동
   return (
     <div>
       <Header>
-        {/* ***************** 오른쪽 프로필 부분  ***************** */}
-        <RightMenu>
+        <RightMenu>{/* ********* 오른쪽 프로필 부분 ********* */}
           <span onClick={onCLickUserProfile}>
             
             {/* 유저 프로필(gravater 사용) */}
@@ -179,33 +157,31 @@ const Workspace :
                     <span id="profile-active">Active</span>
                   </div>
                 </ProfileModal>
+                
                 <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
               </Menu>
             }
           </span>
         </RightMenu>
       </Header>
+      
+      
       <WorkspaceWrapper>
-  
-        {/* ********************* 워크 스페이스들 ********************* */}
-        <Workspaces>
+        
+        <Workspaces>{/* *********** 워크 스페이스들(가장 왼쪽에 위치) ***********  */}
           {userData?.Workspaces?.map((item)=>(
             <Link key={item.id} to={`/workspace/${item.url}/channel/normal`}>
             <WorkspaceButton>{item.name.slice(0,1).toUpperCase()}</WorkspaceButton>
           </Link>
-          ))
-          }
+          ))}
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
   
-        {/* ********************* 채널들 ********************* */}
-        <Channels>
+        <ChannelsAndDMs>{/* *********** 한 워크스페이스의 채널들 And DirectMessage *********** */}
           <WorkspaceName
             onClick={toggleWorkspaceModal}
           >워크스페이스 이름</WorkspaceName>
-          
-          {/* ***** WorkspaceName 클릭시 ***** */}
-          <MenuScroll>
+          <MenuScroll>{/************ WorkspaceName 클릭시 *********** */}
             <Menu
               show={showWorkspaceModal}
               onCloseModal={toggleWorkspaceModal}
@@ -220,34 +196,21 @@ const Workspace :
             
             <ChannelList/>
             <DMList/>
-            {/*{channelData?.map((v:any) => (*/}
-            {/*  <div>{v.name}</div>*/}
-            {/*))}*/}
           </MenuScroll>
-        </Channels>
-  
-        {/* ********************* 채팅 내용들 ********************* */}
-        <Chats>
+        </ChannelsAndDMs>
+        
+        <Chats>{/* *********** 채팅 내용들 *********** */}
           {children}
         </Chats>
       </WorkspaceWrapper>
       
       {/* + 버튼 클릭시 워크스페이스 생성 모달 */}
-      {/* input이 있을 경우 다른 컴포넌트로 빼야 성능에 좋음 */}
-      <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
-        <form onSubmit={onCreateWorkspace}>
-          <Label id="workspace-label">
-            <span>워크스페이스 이름</span>
-            <Input id="workspace" value={newWorkspace} onChange={onChangeNewWorkspace} />
-          </Label>
-          <Label id="workspace-url-label">
-            <span>워크스페이스 url</span>
-            <Input id="workspace-url" value={newUrl} onChange={onChangeNewUrl} />
-          </Label>
-          <Button type="submit">워크스페이스 생성</Button>
-        </form>
-      </Modal>
-  
+      <CreateWorkSpaceModal
+        show={showCreateWorkspaceModal}
+        onCloseModal={onCloseModal}
+        setShowModal={setShowWorkspaceModal}
+      />
+      
       {/* 채널 만들기 클릭시 모달 */}
       <CreateChannelModal
       show={showCreateChannelModal}
@@ -264,9 +227,9 @@ const Workspace :
      
       {/* 워크스페이스 내의 채널에 사용자 초대 모달 */}
       <InviteChannelModal
-          show={showInviteChannelModal}
-          onCloseModal={onCloseModal}
-          setShowInviteChannelModal={setShowInviteChannelModal}/>
+        show={showInviteChannelModal}
+        onCloseModal={onCloseModal}
+        setShowInviteChannelModal={setShowInviteChannelModal}/>
     </div>
   );
 };

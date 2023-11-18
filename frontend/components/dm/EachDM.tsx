@@ -12,13 +12,13 @@ interface Props {
 const EachDM: VFC<Props> = ({ member, isOnline }) => {
   const { workspace } = useParams<{ workspace?: string }>();
   const location = useLocation();
-  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getAxiosReturnData, {
+  const { data: userData } = useSWR<IUser>('/api/users', fetcher.getUserData, {
     dedupingInterval: 2000, // 2초
   });
   const date = localStorage.getItem(`${workspace}-${member.id}`) || 0;
   const { data: count, mutate } = useSWR<number>(
     userData ? `/api/workspaces/${workspace}/dms/${member.id}/unreads?after=${date}` : null,
-      fetcher.getUserAxiosReturnData,
+      fetcher.getAxiosReturnData,
   );
 
   useEffect(() => {

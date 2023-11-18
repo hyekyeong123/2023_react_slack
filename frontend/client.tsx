@@ -20,8 +20,8 @@ const router = createBrowserRouter([
   
   
   { path: '/workspace/:workspace', element: <Workspace /> },
-  { path: '/workspace/:workspace/channel/:channel', element: <Channel /> },
-  { path: '/workspace/:workspace/dm/:id', element: <DirectMessage /> },
+  { path: '/workspace/:workspace/channel/:channel', element: <Channel/> },
+  { path: '/workspace/:workspace/dm/:id', element: <DirectMessage/> },
 ]);
 ReactDOM.createRoot(document.getElementById('app') as Element).render(
   <React.StrictMode>

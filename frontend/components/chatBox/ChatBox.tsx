@@ -1,8 +1,12 @@
 import { ChatArea, Form, SendButton, Toolbox, EachMention, MentionsTextarea } from '@components/chatBox/style';
-import { IUser } from '@typings/db';
+import { IUser, IUserWithOnline } from "@typings/db";
 import autosize from 'autosize';
 import gravatar from 'gravatar';
 import React, { FC, useCallback, useEffect, useRef } from 'react';
+import { Mention, SuggestionDataItem } from "react-mentions";
+import useSWR from "swr";
+import { fetcher } from "@utils/fetcher";
+import { useParams } from "react-router";
 // import { Mention, SuggestionDataItem } from 'react-mentions';
 
 interface Props {
@@ -15,6 +19,7 @@ interface Props {
 const ChatBox: FC<Props> = ({
   onSubmitForm, chat, onChangeChat, placeholder, data
 }) => {
+  
   // autosize 라이브러리 적용(shift 엔터 클릭시 줄바꿈)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -32,28 +37,41 @@ const ChatBox: FC<Props> = ({
     },
     [onSubmitForm],
   );
-  
-/*  const renderUserSuggestion: (
+  const {workspace} = useParams<{workspace:string}>();
+  const { data:userData, error, } = useSWR<IUser | false>(
+    '/api/users',
+    fetcher.getUserData, {
+      errorRetryCount: 50,
+      dedupingInterval:30*60*1000,
+    });
+  const { data: memberData } = useSWR<IUserWithOnline[]>(
+    userData ? `/api/workspaces/${workspace}/members` : null,
+    fetcher.getAxiosReturnData,
+  );
+  const renderUserSuggestion: (
     suggestion: SuggestionDataItem,
     search: string,
     highlightedDisplay: React.ReactNode,
     index: number,
     focused: boolean,
   ) => React.ReactNode = useCallback(
-    (member, search, highlightedDisplay, index, focus) => {
-      if (!data) {
+    (
+      member, search, highlightedDisplay, index, focus
+    ) => {
+      if (!memberData) {
         return null;
       }
       return (
-        <EachMention focus={focus}>
-          <img src={gravatar.url(data[index].email, { s: '20px', d: 'retro' })} alt={data[index].nickname} />
+        <EachMention
+          focus={focus}
+        >
+          <img src={gravatar.url(memberData[index].email, { s: '20px', d: 'retro' })} alt={memberData[index].nickname} />
           <span>{highlightedDisplay}</span>
         </EachMention>
       );
     },
     [data],
-  );*/
-  
+  );
   return (
     <ChatArea>
       <Form onSubmit={onSubmitForm}>
@@ -63,25 +81,17 @@ const ChatBox: FC<Props> = ({
           onChange={onChangeChat}
           onKeyDown={onKeydownChat}
           placeholder={placeholder}
-          ref={textareaRef}
+          inputRef={textareaRef}
+          allowSuggestionsAboveCursor
         >
+          {/* @ 누르면 상세 나오게 하는것 */}
+          <Mention
+            appendSpaceOnAdd // 추가 후 한깐 띄우기
+            trigger="@"
+            data={memberData?.map((v) => ({ id: v.id, display: v.nickname })) || []}
+            renderSuggestion={renderUserSuggestion}
+          />
         </MentionsTextarea>
-        {/*<MentionsTextarea/>*/}
-        {/*  id="editor-chat"*/}
-        {/*  value={chat}*/}
-        {/*  onChange={onChangeChat}*/}
-        {/*  onKeyPress={onKeydownChat}*/}
-        {/*  placeholder={placeholder}*/}
-        {/*  inputRef={textareaRef}*/}
-        {/*  forceSuggestionsAboveCursor*/}
-        {/*>*/}
-          {/*<Mention*/}
-          {/*  appendSpaceOnAdd*/}
-          {/*  trigger="@"*/}
-          {/*  data={data?.map((v) => ({ id: v.id, display: v.nickname })) || []}*/}
-          {/*  renderSuggestion={renderUserSuggestion}*/}
-          {/*/>*/}
-        {/*</MentionsTextarea>*/}
         <Toolbox>
           <SendButton
             className={

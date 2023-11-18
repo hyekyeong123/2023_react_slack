@@ -8,7 +8,7 @@ interface Props{
   children:ReactNode;
 }
 
-// 한 가운데 뜨는 칭
+// 클릭시 중앙에 뜨는 팝업칭
 const Modal:FC<Props> = ({
  show, onCloseModal, children
 }) => {

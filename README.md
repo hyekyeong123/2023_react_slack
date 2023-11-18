@@ -173,10 +173,21 @@ npm 패키지 생성하기
   - socket.emit이 클라이언트에서 서버로, socket.on이 서버에서 클라이언트로
 29. DMList에 onlineList, dm 이벤트 연결
 30. @components/ChatList 작성 및 @components/Chat 구현
-  - npm i react-custom-scrollbars @types/react-custom-scrollbars
+
+    스크롤바 라이브러리
+  - [npm i react-custom-scrollbars @types/react-custom-scrollbars]
 31. makeSection 구현
-  - npm i dayjs
+
+    날짜 포맷 라이브러리
+  - [npm i dayjs]
   - dayjs는 moment를 대체함
+    
+    @mention 사용    
+    [npm i react-mentions]
+    [npm i --save-dev @types/react-mentions]
+
+    정규표현식
+  - [npm i regexify-string]
 32. 프로파일링 하면서 Chat에 memo 적용하기
 33. 인피니트 스크롤링 구현
 34. @components/ChannelList 작성

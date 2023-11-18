@@ -76,7 +76,7 @@ export const Workspaces = styled.div`
   padding: 15px 0 0;
 `;
 
-export const Channels = styled.nav`
+export const ChannelsAndDMs = styled.nav`
   width: 260px;
   display: inline-flex;
   flex-direction: column;
