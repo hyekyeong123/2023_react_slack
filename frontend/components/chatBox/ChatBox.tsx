@@ -24,7 +24,7 @@ const ChatBox: FC<Props> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (textareaRef.current) {autosize(textareaRef.current);}
-  }, []);
+  }, [textareaRef.current]);
   
   const onKeydownChat = useCallback(
     (e:React.KeyboardEvent) => {
@@ -38,16 +38,15 @@ const ChatBox: FC<Props> = ({
     [onSubmitForm],
   );
   const {workspace} = useParams<{workspace:string}>();
-  const { data:userData, error, } = useSWR<IUser | false>(
+  
+  const { data:userData} = useSWR<IUser | false>(
     '/api/users',
-    fetcher.getUserData, {
-      errorRetryCount: 50,
-      dedupingInterval:30*60*1000,
-    });
+    fetcher.getUserData, { errorRetryCount: 50, dedupingInterval:30*60*1000, });
   const { data: memberData } = useSWR<IUserWithOnline[]>(
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher.getAxiosReturnData,
   );
+  
   const renderUserSuggestion: (
     suggestion: SuggestionDataItem,
     search: string,
@@ -58,13 +57,9 @@ const ChatBox: FC<Props> = ({
     (
       member, search, highlightedDisplay, index, focus
     ) => {
-      if (!memberData) {
-        return null;
-      }
+      if (!memberData) {return null;}
       return (
-        <EachMention
-          focus={focus}
-        >
+        <EachMention focus={focus}>
           <img src={gravatar.url(memberData[index].email, { s: '20px', d: 'retro' })} alt={memberData[index].nickname} />
           <span>{highlightedDisplay}</span>
         </EachMention>
@@ -72,6 +67,7 @@ const ChatBox: FC<Props> = ({
     },
     [data],
   );
+  // =====================================================================================
   return (
     <ChatArea>
       <Form onSubmit={onSubmitForm}>
@@ -86,7 +82,7 @@ const ChatBox: FC<Props> = ({
         >
           {/* @ 누르면 상세 나오게 하는것 */}
           <Mention
-            appendSpaceOnAdd // 추가 후 한깐 띄우기
+            appendSpaceOnAdd // 추가 후 한칸 띄우기
             trigger="@"
             data={memberData?.map((v) => ({ id: v.id, display: v.nickname })) || []}
             renderSuggestion={renderUserSuggestion}
